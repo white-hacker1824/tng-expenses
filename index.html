@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TNG 日常开销</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B2244; --navy-2:#12315E; --paper:#F4F6F9; --card:#FFFFFF;
+  --line:#E3E8F0; --ink:#1B2538; --ink-soft:#5B6779; --coral:#FF6A3D; --teal:#1C8C7C;
+  --green:#1C9A6B; --red:#D64545;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --navy:#0B2244; --navy-2:#12315E; --paper:#0E1420; --card:#161F2E;
+    --line:#263347; --ink:#EAEFF7; --ink-soft:#8D99AE; --coral:#FF7A4D; --teal:#2AAF9C;
+    --green:#2FBE86; --red:#E86060;
+  }
+}
+:root[data-theme="dark"]{
+  --navy:#0B2244; --navy-2:#12315E; --paper:#0E1420; --card:#161F2E;
+  --line:#263347; --ink:#EAEFF7; --ink-soft:#8D99AE; --coral:#FF7A4D; --teal:#2AAF9C;
+  --green:#2FBE86; --red:#E86060;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+*{box-sizing:border-box;}
+body{margin:0; height:100%; background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,.num{font-family:'Manrope',sans-serif;}
+.wrap{max-width:460px; margin:0 auto; padding:0 18px 110px;}
+
+header.top{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-2) 100%); color:#fff; padding:26px 18px 30px; border-radius:0 0 28px 28px; padding-top:calc(26px + env(safe-area-inset-top,0px));}
+header.top .brand{display:flex; align-items:center; gap:8px; font-size:13px; color:#B9C6E0;}
+.brand-row{display:flex; align-items:center; justify-content:space-between;}
+.share-btn{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); color:#DCE4F2; font:600 12px 'Inter',sans-serif; padding:6px 11px; border-radius:9px; cursor:pointer;}
+.share-btn:active{opacity:.8;}
+header.top .dot{width:7px; height:7px; border-radius:50%; background:var(--coral);}
+header.top .wrap{padding-top:16px; padding-bottom:0;}
+.net-label{color:#B9C6E0; font-size:14px; margin:14px 0 4px;}
+.net{font-size:38px; font-weight:800; line-height:1; letter-spacing:-.5px;}
+.inout-row{display:flex; gap:18px; margin-top:14px;}
+.inout-row div{font-size:13px; color:#B9C6E0;}
+.inout-row b{display:block; font-family:'Manrope',sans-serif; font-size:16px; font-weight:700; margin-top:2px;}
+.inout-row .in b{color:#6FE3B5;}
+.inout-row .out b{color:#FFA98C;}
+.period-row{display:flex; gap:8px; margin-top:16px;}
+.period-row button{flex:1; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); color:#DCE4F2; padding:9px 0; border-radius:10px; font:600 13px 'Inter',sans-serif; cursor:pointer;}
+.period-row button.active{background:#fff; color:var(--navy); border-color:#fff;}
+
+.content{margin-top:-16px;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin-top:14px;}
+.card h3{margin:0 0 12px; font-size:15px; font-weight:700;}
+
+.bars{display:flex; align-items:flex-end; gap:8px; height:100px;}
+.bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+.bar-stack{width:100%; max-width:26px; display:flex; flex-direction:column-reverse; border-radius:6px 6px 3px 3px; overflow:hidden; min-height:3px;}
+.bar-out{background:var(--coral);} .bar-in{background:var(--green);}
+.bar-col .lbl{font-size:11px; color:var(--ink-soft); margin-top:6px;}
+
+.cat-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);}
+.cat-row:last-child{border-bottom:none;}
+.cat-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+.cat-name{flex:1; font-size:14px;}
+.cat-amt{font-size:14px; font-weight:700; font-family:'Manrope',sans-serif;}
+.cat-pct{font-size:12px; color:var(--ink-soft); width:34px; text-align:right;}
+
+.tx-date{font-size:12px; color:var(--ink-soft); margin:18px 0 6px; font-weight:600;}
+.tx-date:first-child{margin-top:0;}
+.tx{display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 13px; margin-bottom:8px;}
+.tx-icon{width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;}
+.tx-mid{flex:1; min-width:0;}
+.tx-title{font-size:14px; font-weight:600;}
+.tx-sub{font-size:12px; color:var(--ink-soft); margin-top:1px;}
+.tx-amt{font-weight:700; font-family:'Manrope',sans-serif; font-size:14px;}
+.tx-amt.in{color:var(--green);} .tx-amt.out{color:var(--ink);}
+.tx-click{cursor:pointer;}
+.tx-click:active{background:var(--paper);}
+.tx-del{background:none; border:none; color:var(--ink-soft); font-size:16px; cursor:pointer; padding:4px 2px; line-height:1; opacity:.6;}
+.tx-del:active{opacity:1;}
+.empty{text-align:center; padding:36px 10px; color:var(--ink-soft); font-size:14px;}
+
+/* Calendar */
+.cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.cal-head button{background:var(--paper); border:1px solid var(--line); color:var(--ink); width:32px; height:32px; border-radius:9px; font-size:15px; cursor:pointer;}
+.cal-head .ttl{font-weight:700; font-size:15px;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
+.cal-dow{text-align:center; font-size:11px; color:var(--ink-soft); padding-bottom:4px;}
+.cal-cell{aspect-ratio:1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; cursor:pointer; background:var(--paper); border:1px solid transparent; gap:1px;}
+.cal-cell.empty-cell{visibility:hidden; cursor:default;}
+.cal-cell.today{border-color:var(--coral);}
+.cal-cell.sel{background:var(--navy); color:#fff;}
+.cal-cell.in-range{background:rgba(11,34,68,.12);}
+:root[data-theme="dark"] .cal-cell.in-range{background:rgba(255,255,255,.1);}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cal-cell.in-range{background:rgba(255,255,255,.1);} }
+.cal-hint{font-size:12px; color:var(--ink-soft); margin:-4px 0 10px;}
+.cal-hint button{background:none;border:none;color:var(--coral);font:600 12px 'Inter',sans-serif;cursor:pointer;padding:0;margin-left:6px;}
+.cal-cell .d{font-weight:600;}
+.cal-cell .mark{width:4px; height:4px; border-radius:50%;}
+.cal-cell .mark.out{background:var(--coral);} .cal-cell .mark.in{background:var(--green);} .cal-cell .mark.both{background:linear-gradient(90deg,var(--green) 50%,var(--coral) 50%);}
+.day-detail{margin-top:14px;}
+.day-sum{display:flex; gap:14px; margin-bottom:10px; font-size:13px; color:var(--ink-soft);}
+.day-sum b{color:var(--ink); font-family:'Manrope',sans-serif;}
+
+body.viewer-mode .tabbar, body.viewer-mode .fab, body.viewer-mode .period-row, body.viewer-mode .inout-row, body.viewer-mode .net-label, body.viewer-mode .net, body.viewer-mode .share-btn{display:none !important;}
+body.viewer-mode .wrap{padding-bottom:30px;}
+.viewer-tag{font-size:12px; color:#B9C6E0; margin-top:14px;}
+.viewer-tag:empty{display:none;}
+.cal-month-total{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--line);}
+.cal-month-total .lbl{font-size:13px; color:var(--ink-soft);}
+.cal-month-total .amt{font:800 20px 'Manrope',sans-serif;}
+.tabbar{position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom,0px); z-index:15;}
+.tabbar button{flex:1; background:none; border:none; padding:11px 0 9px; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink-soft); font-size:11px; cursor:pointer; font-family:'Inter',sans-serif;}
+.tabbar button .ic{font-size:19px;}
+.tabbar button.active{color:var(--navy);}
+:root[data-theme="dark"] .tabbar button.active{color:#fff;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tabbar button.active{color:#fff;} }
+
+.fab{position:fixed; right:18px; bottom:calc(76px + env(safe-area-inset-bottom,0px)); background:var(--coral); color:#fff; border:none; border-radius:16px; width:54px; height:54px; font:700 22px 'Manrope',sans-serif; box-shadow:0 10px 24px rgba(255,106,61,.35); cursor:pointer; z-index:20;}
+.fab:active{transform:scale(.95);}
+
+.sheet-bg{position:fixed; inset:0; background:rgba(5,10,20,.5); z-index:30; display:none; align-items:flex-end; justify-content:center;}
+.sheet-bg.open{display:flex;}
+.sheet{background:var(--card); width:100%; max-width:460px; border-radius:22px 22px 0 0; padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px)); max-height:88vh; overflow-y:auto;}
+.confirm-meta input{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:6px 8px; color:var(--ink); font:500 13px 'Inter',sans-serif; color-scheme:light dark;}
+.confirm-meta{display:flex; justify-content:space-between; color:var(--ink-soft); font-size:12px; background:var(--paper); border-radius:10px; padding:9px 12px; margin-bottom:14px;}
+.type-toggle{display:flex; background:var(--paper); border-radius:11px; padding:3px; margin-bottom:14px;}
+.type-toggle button{flex:1; border:none; background:none; padding:9px 0; border-radius:8px; font:700 13px 'Manrope',sans-serif; color:var(--ink-soft); cursor:pointer;}
+.type-toggle button.sel-out.on{background:var(--coral); color:#fff;}
+.type-toggle button.sel-in.on{background:var(--green); color:#fff;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; font-weight:600;}
+.amt-input{width:100%; font:800 32px 'Manrope',sans-serif; border:none; background:none; color:var(--ink); padding:4px 0; border-bottom:2px solid var(--line);}
+.amt-input:focus{outline:none; border-color:var(--coral);}
+.text-input{width:100%; font:500 15px 'Inter',sans-serif; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:11px 12px;}
+.text-input:focus{outline:2px solid var(--coral); outline-offset:1px;}
+.cat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+.cat-pick{display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 4px; border-radius:12px; border:1px solid var(--line); background:var(--paper); cursor:pointer; font-size:11px; color:var(--ink-soft);}
+.cat-pick.sel{border-color:var(--coral); background:rgba(255,106,61,.1); color:var(--ink); font-weight:600;}
+.cat-pick .ic{font-size:18px;}
+.sheet-actions{display:flex; gap:10px; margin-top:6px;}
+.btn{flex:1; padding:13px; border-radius:12px; font:700 14px 'Manrope',sans-serif; cursor:pointer; border:none;}
+.btn-ghost{background:var(--paper); color:var(--ink-soft); border:1px solid var(--line);}
+.btn-primary{background:var(--navy); color:#fff;}
+.btn-primary:active{opacity:.85;}
+.view{display:none;} .view.active{display:block;}
+
+.rc-bg{position:fixed; inset:0; background:rgba(5,10,20,.7); z-index:40; display:none; align-items:center; justify-content:center; padding:14px; overflow-y:auto;}
+.rc-bg.open{display:flex;}
+.rc-wrap{width:100%; max-width:380px; margin:auto;}
+.rc-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.rc-nav button{background:rgba(255,255,255,.15); border:none; color:#fff; width:34px; height:34px; border-radius:10px; font-size:16px; cursor:pointer;}
+.rc-nav span{color:#fff; font-size:13px;}
+.rc-card{background:#fff; color:#1B2538; border-radius:22px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.rc-head{background:linear-gradient(160deg,#0B2244,#12315E); color:#fff; padding:22px 20px 24px;}
+.rc-head .t{font-size:12px; color:#B9C6E0;}
+.rc-head .m{font:700 16px 'Manrope',sans-serif; margin-top:4px;}
+.rc-head .big{font:800 38px 'Manrope',sans-serif; margin-top:12px; letter-spacing:-.5px;}
+.rc-head .sub{font-size:12px; color:#B9C6E0; margin-top:6px;}
+.rc-body{padding:16px 16px 18px; overflow:hidden;}
+.rc-dow,.rc-grid{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; width:100%;}
+.rc-dow div{text-align:center; font-size:10px; color:#8A94A6; padding-bottom:3px;}
+.rc-cell{min-width:0; overflow:hidden; aspect-ratio:1/1.08; border-radius:9px; background:#F4F6F9; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; color:#5B6779;}
+.rc-cell.empty{visibility:hidden;}
+.rc-cell.has{background:#FFE9E1; color:#1B2538;}
+.rc-cell.hi{background:#FF6A3D; color:#fff;}
+.rc-cell b{font:700 10px 'Manrope',sans-serif; margin-top:2px;}
+.rc-cats{margin-top:16px;}
+.rc-cat{display:flex; align-items:center; gap:8px; margin-bottom:9px; font-size:12px;}
+.rc-cat .n{width:78px;}
+.rc-cat .bar{flex:1; height:8px; background:#EEF1F6; border-radius:6px; overflow:hidden;}
+.rc-cat .bar i{display:block; height:100%; border-radius:6px;}
+.rc-cat .a{width:82px; text-align:right; font:700 12px 'Manrope',sans-serif;}
+.rc-foot{text-align:center; font-size:10px; color:#8A94A6; margin-top:12px;}
+.rc-actions{display:flex; gap:10px; margin-top:12px;}
+.rc-actions button{flex:1; padding:12px; border-radius:12px; border:none; font:700 13px 'Manrope',sans-serif; cursor:pointer;}
+.rc-tip{text-align:center; color:#DCE4F2; font-size:12px; margin-top:10px;}
+::-webkit-scrollbar{width:0;height:0;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand-row">
+      <div class="brand"><span class="dot"></span> TNG · 日常开销</div>
+      <button class="share-btn" id="shareBtn">分享给家人 ↓</button>
+    </div>
+    <div class="net-label" id="periodLabel">今日净额</div>
+    <div class="net">RM <span id="netNum">0.00</span></div>
+    <div class="inout-row">
+      <div class="in">进 <b id="inNum">0.00</b></div>
+      <div class="out">出 <b id="outNum">0.00</b></div>
+    </div>
+    <div class="period-row">
+      <button data-range="day">今天</button>
+      <button data-range="week">本周</button>
+      <button class="active" data-range="month">本月</button>
+    </div>
+    <div class="viewer-tag" id="roleTag"></div>
+  </div>
+</header>
+
+<div class="wrap content">
+
+  <div class="view active" id="viewHome">
+    <div class="card">
+      <h3>近 7 天</h3>
+      <div class="bars" id="barsRow"></div>
+    </div>
+    <div class="card" id="catCard" style="display:none;">
+      <h3>分类占比</h3>
+      <div id="catRows"></div>
+    </div>
+    <div id="txList" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="view" id="viewCal">
+    <div class="card">
+      <div class="cal-month-total"><span class="lbl" id="calMonthLbl">本月支出</span><span class="amt" id="calMonthAmt">RM 0.00</span></div>
+      <div class="cal-head">
+        <button id="calPrev">‹</button>
+        <div class="ttl" id="calTitle"></div>
+        <button id="calNext">›</button>
+      </div>
+      <div class="cal-grid" id="calDow"></div>
+      <div class="cal-grid" id="calGrid" style="margin-top:5px;"></div>
+      <div class="cal-hint">点一个日期查看当天;再点另一个日期可查看这段区间的合计<button id="calClear">清除选择</button></div>
+    </div>
+    <div class="card day-detail">
+      <h3 id="dayTitle">选择日期查看明细</h3>
+      <div class="day-sum" id="daySum"></div>
+      <div id="dayTxList"></div>
+    </div>
+  </div>
+
+</div>
+
+<button class="fab" id="openAdd">＋</button>
+
+<div class="tabbar">
+  <button class="active" data-tab="home"><span class="ic">📋</span>记录</button>
+  <button data-tab="cal"><span class="ic">📅</span>日历</button>
+</div>
+
+<div class="rc-bg" id="reportCardBg"><div class="rc-wrap">
+  <div class="rc-nav"><button id="rcPrev">‹</button><span>📸 截图后发给家人</span><button id="rcNext">›</button></div>
+  <div class="rc-card" id="rcCard"></div>
+  <div class="rc-actions"><button style="background:rgba(255,255,255,.15);color:#fff;" id="rcClose">关闭</button><button style="background:#fff;color:#0B2244;" id="rcText">复制文字版</button></div>
+</div></div>
+
+<div class="sheet-bg" id="reportBg"><div class="sheet"><h2>发给老妈</h2><div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">点下面“复制”,再到 WhatsApp 粘贴发送</div><textarea id="reportText" class="text-input" style="height:240px;font-size:13px;" readonly></textarea><div class="sheet-actions" style="margin-top:12px;"><button class="btn btn-ghost" id="reportClose">关闭</button><button class="btn btn-primary" id="reportCopy">复制</button></div></div></div>
+
+<div class="sheet-bg" id="sheetBg">
+  <div class="sheet">
+    <h2 id="sheetTitle">付款确认</h2>
+    <div class="confirm-meta">
+      <input type="date" id="confDate"><input type="time" id="confTime">
+    </div>
+    <div class="type-toggle">
+      <button class="sel-out on" data-type="out">支出 (出)</button>
+      <button class="sel-in" data-type="in">收入 (进)</button>
+    </div>
+    <div class="field">
+      <label>金额 (RM)</label>
+      <input class="amt-input" id="inpAmt" type="number" inputmode="decimal" placeholder="0.00" step="0.01">
+    </div>
+    <div class="field">
+      <label>类别</label>
+      <div class="cat-grid" id="catGrid"></div>
+    </div>
+    <div class="field">
+      <label>备注</label>
+      <input class="text-input" id="inpNote" type="text" placeholder="例如:Grab 早餐、停车费...">
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="cancelAdd">取消</button>
+      <button class="btn btn-primary" id="saveAdd">确认保存</button>
+    </div>
+    <button class="btn" id="deleteInSheet" style="display:none;width:100%;margin-top:10px;background:none;color:var(--red);border:1px solid var(--line);">删除这笔记录</button>
+  </div>
+</div>
+
+<script>
+const CATS_OUT = [
+  {id:'food', name:'餐饮', ic:'🍜', color:'#FF6A3D'},
+  {id:'transport', name:'交通/过路费', ic:'🚗', color:'#1C8C7C'},
+  {id:'ewallet', name:'充值', ic:'💳', color:'#3B6FD1'},
+  {id:'shopping', name:'购物', ic:'🛍️', color:'#B5559C'},
+  {id:'bills', name:'水电账单', ic:'🧾', color:'#C9A227'},
+  {id:'parking', name:'停车', ic:'🅿️', color:'#5B6779'},
+  {id:'entertain', name:'娱乐', ic:'🎬', color:'#E0507A'},
+  {id:'other', name:'其他', ic:'✨', color:'#7A8699'},
+];
+const CATS_IN = [
+  {id:'transfer', name:'转账收入', ic:'📥', color:'#1C9A6B'},
+  {id:'salary', name:'工资', ic:'💰', color:'#3B6FD1'},
+  {id:'refund', name:'退款', ic:'↩️', color:'#C9A227'},
+  {id:'other_in', name:'其他收入', ic:'✨', color:'#7A8699'},
+];
+const KEY = 'tng-expenses-v2';
+let tx = [];
+let useDb = false, dbCol = null, canWrite = true, dataReady = false;
+let curType = 'out';
+let selectedCat = CATS_OUT[0].id;
+let range = 'month';
+let calCursor = new Date(); calCursor.setDate(1);
+let selStart = null, selEnd = null;
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(tx)); }catch(e){} }
+function fmt(n){ return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function dayKey(d){ const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; }
+function catsFor(type){ return type==='in' ? CATS_IN : CATS_OUT; }
+function catInfo(type,id){ return catsFor(type).find(c=>c.id===id) || catsFor(type)[catsFor(type).length-1]; }
+function startOfWeek(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; }
+function inRange(item, r){
+  const d = new Date(item.ts); const now = new Date();
+  if(r==='day') return dayKey(d)===dayKey(now);
+  if(r==='week') return d >= startOfWeek(now);
+  if(r==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  return true;
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+/* ---- Tabs ---- */
+document.querySelectorAll('.tabbar button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(b.dataset.tab==='home'?'viewHome':'viewCal').classList.add('active');
+    if(b.dataset.tab==='cal') renderCalendar();
+  });
+});
+
+/* ---- Period buttons ---- */
+document.querySelectorAll('.period-row button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.period-row button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); range = b.dataset.range; renderAll();
+  });
+});
+
+/* ---- Home render ---- */
+function renderBars(){
+  const days=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0); days.push(d); }
+  const data = days.map(d=>{
+    const items = tx.filter(t=>dayKey(new Date(t.ts))===dayKey(d));
+    return { out: items.filter(t=>t.type==='out').reduce((s,t)=>s+t.amt,0), in: items.filter(t=>t.type==='in').reduce((s,t)=>s+t.amt,0) };
+  });
+  const max = Math.max(...data.map(d=>Math.max(d.in,d.out)), 1);
+  const wk=['一','二','三','四','五','六','日'];
+  document.getElementById('barsRow').innerHTML = days.map((d,i)=>{
+    const ho = Math.max(2, Math.round((data[i].out/max)*90));
+    const hi = Math.max(2, Math.round((data[i].in/max)*90));
+    return `<div class="bar-col">
+      <div style="display:flex;gap:2px;align-items:flex-end;height:90px;">
+        <div class="bar-stack" style="height:${hi}px;max-width:11px;"><div class="bar-in" style="height:100%"></div></div>
+        <div class="bar-stack" style="height:${ho}px;max-width:11px;"><div class="bar-out" style="height:100%"></div></div>
+      </div>
+      <div class="lbl">${wk[d.getDay()===0?6:d.getDay()-1]}</div></div>`;
+  }).join('');
+}
+function renderCats(list){
+  const card = document.getElementById('catCard');
+  const outList = list.filter(t=>t.type==='out');
+  if(outList.length===0){ card.style.display='none'; return; }
+  const totals={}; outList.forEach(t=>{ totals[t.cat]=(totals[t.cat]||0)+t.amt; });
+  const total = Object.values(totals).reduce((a,b)=>a+b,0) || 1;
+  const rows = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  card.style.display='block';
+  document.getElementById('catRows').innerHTML = rows.map(([id,amt])=>{
+    const c = catInfo('out',id); const pct = Math.round(amt/total*100);
+    return `<div class="cat-row"><div class="cat-dot" style="background:${c.color}"></div>
+      <div class="cat-name">${c.ic} ${c.name}</div><div class="cat-amt">RM ${fmt(amt)}</div><div class="cat-pct">${pct}%</div></div>`;
+  }).join('');
+}
+function txRowHtml(t, allowDel){
+  const c = catInfo(t.type, t.cat);
+  return `<div class="tx ${allowDel?'tx-click':''}" ${allowDel?`data-edit-id="${t.id}"`:''}>
+    <div class="tx-icon" style="background:${c.color}22">${c.ic}</div>
+    <div class="tx-mid"><div class="tx-title">${t.note ? escapeHtml(t.note) : c.name}</div>
+    <div class="tx-sub">${c.name} · ${new Date(t.ts).toTimeString().slice(0,5)}</div></div>
+    <div class="tx-amt ${t.type}">${t.type==='in'?'+':'-'}RM ${fmt(t.amt)}</div>
+    ${allowDel?`<button class="tx-del" data-id="${t.id}">✕</button>`:''}
+  </div>`;
+}
+function wireTxRows(container){
+  container.querySelectorAll('.tx-del').forEach(b=> b.addEventListener('click', (e)=>{ e.stopPropagation(); deleteEntry(b.dataset.id); }));
+  container.querySelectorAll('.tx-click[data-edit-id]').forEach(row=> row.addEventListener('click', ()=> openEdit(row.dataset.editId)));
+}
+function renderList(list){
+  const el = document.getElementById('txList');
+  if(list.length===0){ el.innerHTML = `<div class="empty">这段时间还没有记录<br>点右下角「＋」开始吧</div>`; return; }
+  const groups={};
+  list.slice().sort((a,b)=>b.ts-a.ts).forEach(t=>{ (groups[dayKey(new Date(t.ts))]=groups[dayKey(new Date(t.ts))]||[]).push(t); });
+  const todayKey = dayKey(new Date());
+  const y=new Date(); y.setDate(y.getDate()-1); const yKey=dayKey(y);
+  let html='';
+  Object.keys(groups).sort((a,b)=>a<b?1:-1).forEach(k=>{
+    const label = k===todayKey?'今天':(k===yKey?'昨天':k);
+    html += `<div class="tx-date">${label}</div>`;
+    groups[k].forEach(t=> html += txRowHtml(t, canWrite));
+  });
+  el.innerHTML = html;
+  wireTxRows(el);
+}
+async function deleteEntry(id){
+  if(!canWrite) return;
+  try{
+    if(useDb && dbCol){ await dbCol.doc(String(id)).delete(); }
+    else{ tx = tx.filter(t=>String(t.id)!==String(id)); save(); onDataChanged(); }
+  }catch(e){ alert('删除失败,请重试。'); }
+}
+function onDataChanged(){
+  renderAll();
+  if(document.getElementById('viewCal').classList.contains('active')) renderCalendar();
+}
+function renderAll(){
+  const list = tx.filter(t=>inRange(t, range));
+  const inTotal = list.filter(t=>t.type==='in').reduce((s,t)=>s+t.amt,0);
+  const outTotal = list.filter(t=>t.type==='out').reduce((s,t)=>s+t.amt,0);
+  document.getElementById('netNum').textContent = fmt(inTotal-outTotal);
+  document.getElementById('inNum').textContent = fmt(inTotal);
+  document.getElementById('outNum').textContent = fmt(outTotal);
+  document.getElementById('periodLabel').textContent = range==='day'?'今日净额':range==='week'?'本周净额':'本月净额';
+  renderBars(); renderCats(list); renderList(list);
+}
+
+/* ---- Calendar ---- */
+const DOW = ['一','二','三','四','五','六','日'];
+function renderCalendar(){
+  document.getElementById('calDow').innerHTML = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const y = calCursor.getFullYear(), m = calCursor.getMonth();
+  document.getElementById('calTitle').textContent = `${y}年 ${m+1}月`;
+  const firstDow = (new Date(y,m,1).getDay()+6)%7;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const byDay = {};
+  const monthItems = tx.filter(t=>{ const d=new Date(t.ts); return d.getFullYear()===y && d.getMonth()===m && (canWrite || t.type==='out'); });
+  monthItems.forEach(t=>{ const k=dayKey(new Date(t.ts)); (byDay[k]=byDay[k]||[]).push(t); });
+  const monthOut = monthItems.filter(t=>t.type==='out').reduce((s,t)=>s+t.amt,0);
+  document.getElementById('calMonthAmt').textContent = 'RM ' + fmt(monthOut);
+  let html='';
+  for(let i=0;i<firstDow;i++) html += `<div class="cal-cell empty-cell"></div>`;
+  const todayK = dayKey(new Date());
+  for(let d=1; d<=daysInMonth; d++){
+    const dateObj = new Date(y,m,d); const k = dayKey(dateObj);
+    const items = byDay[k]||[];
+    const hasOut = items.some(t=>t.type==='out'), hasIn = items.some(t=>t.type==='in');
+    let markCls = hasOut&&hasIn?'both':hasOut?'out':hasIn?'in':'';
+    const isEdge = k===selStart || k===selEnd;
+    const isMid = selStart && selEnd && k>selStart && k<selEnd;
+    html += `<div class="cal-cell ${k===todayK?'today':''} ${isEdge?'sel':''} ${isMid?'in-range':''}" data-date="${k}">
+      <div class="d">${d}</div>${markCls?`<div class="mark ${markCls}"></div>`:'<div style="height:4px"></div>'}
+    </div>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+  document.querySelectorAll('.cal-cell[data-date]').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      const k = c.dataset.date;
+      if(!selStart || (selStart && selEnd)){ selStart = k; selEnd = null; }
+      else if(k === selStart){ selStart = null; selEnd = null; }
+      else if(k < selStart){ selEnd = selStart; selStart = k; }
+      else{ selEnd = k; }
+      renderCalendar();
+    });
+  });
+  document.getElementById('calClear').onclick = ()=>{ selStart=null; selEnd=null; renderCalendar(); };
+  renderDayDetail();
+}
+function renderDayDetail(){
+  const title = document.getElementById('dayTitle');
+  const sum = document.getElementById('daySum');
+  const list = document.getElementById('dayTxList');
+  if(!selStart){ title.textContent='选择日期查看明细'; sum.innerHTML=''; list.innerHTML=''; return; }
+  const rangeStart = selStart, rangeEnd = selEnd || selStart;
+  title.textContent = rangeEnd===rangeStart ? rangeStart : `${rangeStart} 至 ${rangeEnd}`;
+  const items = tx.filter(t=>{ const k=dayKey(new Date(t.ts)); return k>=rangeStart && k<=rangeEnd && (canWrite || t.type==='out'); }).sort((a,b)=>b.ts-a.ts);
+  const inT = items.filter(t=>t.type==='in').reduce((s,t)=>s+t.amt,0);
+  const outT = items.filter(t=>t.type==='out').reduce((s,t)=>s+t.amt,0);
+  sum.innerHTML = `<div>进 <b style="color:var(--green)">RM ${fmt(inT)}</b></div><div>出 <b style="color:var(--coral)">RM ${fmt(outT)}</b></div><div>净额 <b>RM ${fmt(inT-outT)}</b></div>`;
+  if(!items.length){ list.innerHTML = `<div class="empty">这段时间没有记录</div>`; return; }
+  const groups = {};
+  items.forEach(t=>{ const k=dayKey(new Date(t.ts)); (groups[k]=groups[k]||[]).push(t); });
+  let html='';
+  Object.keys(groups).sort((a,b)=> a<b?1:-1).forEach(k=>{
+    if(rangeEnd!==rangeStart) html += `<div class="tx-date">${k}</div>`;
+    groups[k].forEach(t=> html += txRowHtml(t,canWrite));
+  });
+  list.innerHTML = html;
+  wireTxRows(list);
+}
+document.getElementById('calPrev').addEventListener('click', ()=>{ calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
+document.getElementById('calNext').addEventListener('click', ()=>{ calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); });
+
+/* ---- Add sheet ---- */
+function renderCatGrid(){
+  const grid = document.getElementById('catGrid');
+  grid.innerHTML = catsFor(curType).map(c=>`<div class="cat-pick ${c.id===selectedCat?'sel':''}" data-cat="${c.id}"><span class="ic">${c.ic}</span><span>${c.name}</span></div>`).join('');
+  grid.querySelectorAll('.cat-pick').forEach(el=> el.addEventListener('click', ()=>{ selectedCat = el.dataset.cat; renderCatGrid(); }));
+}
+document.querySelectorAll('.type-toggle button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.type-toggle button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); curType = b.dataset.type; selectedCat = catsFor(curType)[0].id; renderCatGrid();
+  });
+});
+const sheetBg = document.getElementById('sheetBg');
+let editingId = null, editingTs = null;
+function getSheetTs(fallback){
+  const d=document.getElementById('confDate').value, t=document.getElementById('confTime').value;
+  if(!d) return fallback;
+  const ts=new Date(d+'T'+(t||'00:00')).getTime();
+  return isNaN(ts) ? fallback : ts;
+}
+function setTypeUI(type){
+  document.querySelectorAll('.type-toggle button').forEach(x=>x.classList.remove('on'));
+  document.querySelector(`.type-toggle button[data-type="${type}"]`).classList.add('on');
+}
+function openSheet(){
+  editingId = null; editingTs = null;
+  curType='out'; selectedCat = CATS_OUT[0].id;
+  setTypeUI('out'); renderCatGrid();
+  document.getElementById('sheetTitle').textContent = '付款确认';
+  document.getElementById('deleteInSheet').style.display = 'none';
+  const now = new Date();
+  document.getElementById('confDate').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  document.getElementById('confTime').value = now.toTimeString().slice(0,5);
+  document.getElementById('inpAmt').value=''; document.getElementById('inpNote').value='';
+  sheetBg.classList.add('open');
+  setTimeout(()=>document.getElementById('inpAmt').focus(), 50);
+}
+function openEdit(id){
+  if(!canWrite) return;
+  const t = tx.find(x=>String(x.id)===String(id));
+  if(!t) return;
+  editingId = t.id; editingTs = t.ts;
+  curType = t.type; selectedCat = t.cat;
+  setTypeUI(t.type); renderCatGrid();
+  document.getElementById('sheetTitle').textContent = '编辑记录';
+  document.getElementById('deleteInSheet').style.display = 'block';
+  const d = new Date(t.ts);
+  document.getElementById('confDate').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  document.getElementById('confTime').value = d.toTimeString().slice(0,5);
+  document.getElementById('inpAmt').value = t.amt;
+  document.getElementById('inpNote').value = t.note || '';
+  sheetBg.classList.add('open');
+}
+function closeSheet(){ sheetBg.classList.remove('open'); editingId=null; editingTs=null; }
+document.getElementById('openAdd').addEventListener('click', openSheet);
+document.getElementById('cancelAdd').addEventListener('click', closeSheet);
+sheetBg.addEventListener('click', (e)=>{ if(e.target===sheetBg) closeSheet(); });
+document.getElementById('deleteInSheet').addEventListener('click', async ()=>{
+  if(!editingId) return;
+  if(!confirm('确定删除这笔记录吗?')) return;
+  const id = editingId;
+  closeSheet();
+  await deleteEntry(id);
+});
+document.getElementById('saveAdd').addEventListener('click', async ()=>{
+  const amt = parseFloat(document.getElementById('inpAmt').value);
+  if(!amt || amt<=0){ document.getElementById('inpAmt').focus(); return; }
+  const note = document.getElementById('inpNote').value.trim();
+  const saveBtn = document.getElementById('saveAdd');
+  saveBtn.disabled = true;
+  try{
+    if(editingId){
+      const patch = { amt, type:curType, cat:selectedCat, note, ts:getSheetTs(editingTs) };
+      if(useDb && dbCol){ await dbCol.doc(String(editingId)).update(patch); }
+      else{
+        const idx = tx.findIndex(x=>String(x.id)===String(editingId));
+        if(idx>-1){ tx[idx] = Object.assign({}, tx[idx], patch); save(); onDataChanged(); }
+      }
+    }else{
+      const entry = { amt, type:curType, cat:selectedCat, note, ts:getSheetTs(Date.now()) };
+      if(useDb && dbCol){ await dbCol.add(entry); }
+      else{ tx.push(Object.assign({id:Date.now()+Math.random()}, entry)); save(); onDataChanged(); }
+    }
+    closeSheet();
+  }catch(e){
+    alert('保存失败,请检查网络后重试。');
+  }
+  saveBtn.disabled = false;
+});
+
+/* ---- Share read-only snapshot for family ---- */
+function buildReadOnlyHtml(){
+  const data = tx.filter(t=>t.type==='out').map(t=>({a:t.amt, c:t.cat, n:t.note||'', ts:t.ts}));
+  const catMeta = {}; CATS_OUT.forEach(c=> catMeta[c.id] = {name:c.name, ic:c.ic, color:c.color});
+  const generated = new Date().toLocaleString('zh-CN');
+  return `<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>开销分享(只读)</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0B2244;--navy2:#12315E;--paper:#F4F6F9;--card:#fff;--line:#E3E8F0;--ink:#1B2538;--soft:#5B6779;--coral:#FF6A3D;}
+*{box-sizing:border-box;}body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+.wrap{max-width:460px;margin:0 auto;padding:0 18px 40px;}
+header{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;padding:22px 18px 26px;border-radius:0 0 24px 24px;}
+header .tag{font-size:12px;color:#B9C6E0;}
+header .sum{font:800 30px 'Manrope',sans-serif;margin-top:8px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin-top:14px;}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-head button{background:var(--paper);border:1px solid var(--line);width:30px;height:30px;border-radius:8px;cursor:pointer;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.dow{text-align:center;font-size:11px;color:var(--soft);}
+.cell{aspect-ratio:1;border-radius:9px;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;cursor:pointer;gap:2px;}
+.cell.empty{visibility:hidden;}
+.cell.sel{background:var(--navy);color:#fff;}
+.cell .m{width:4px;height:4px;border-radius:50%;background:var(--coral);}
+.row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+.row:last-child{border-bottom:none;}
+.dot{width:9px;height:9px;border-radius:50%;}
+.nm{flex:1;font-size:14px;}.amt{font:700 14px 'Manrope',sans-serif;}
+.tx{display:flex;gap:10px;align-items:center;background:var(--paper);border-radius:12px;padding:10px 12px;margin-bottom:7px;}
+.ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.ttl{font-size:13px;font-weight:600;} .sub{font-size:11px;color:var(--soft);}
+.empty-msg{text-align:center;color:var(--soft);font-size:13px;padding:24px 0;}
+.foot{text-align:center;color:var(--soft);font-size:11px;margin-top:18px;}
+</style></head><body>
+<header><div class="wrap"><div class="tag">💳 TNG 开销分享 · 只读</div><div class="tag" id="mTitle" style="margin-top:10px;font-size:13px;"></div><div class="sum">RM <span id="mTotal">0.00</span></div></div></header>
+<div class="wrap">
+<div class="card"><div class="cal-head"><button id="pv">‹</button><div id="calT" style="font-weight:700;font-size:14px;"></div><button id="nx">›</button></div><div class="cal-grid" id="dow"></div><div class="cal-grid" id="grid" style="margin-top:4px;"></div></div>
+<div class="card"><div id="catTtl" style="font-weight:700;font-size:14px;margin-bottom:10px;">本月分类</div><div id="cats"></div></div>
+<div class="card"><div id="dayTtl" style="font-weight:700;font-size:14px;margin-bottom:10px;">点日期查看当天开销</div><div id="dayList"></div></div>
+<div class="foot">由对方于 ${generated} 导出 · 数据为导出时的快照</div>
+</div>
+<script>
+const DATA = ${JSON.stringify(data)};
+const CAT = ${JSON.stringify(catMeta)};
+function fmt(n){return n.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g,',');}
+function dk(d){const z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());}
+let cur = new Date(); cur.setDate(1); let sel=null;
+function render(){
+  const y=cur.getFullYear(), m=cur.getMonth();
+  document.getElementById('calT').textContent = y+'年 '+(m+1)+'月';
+  const monthItems = DATA.filter(t=>{const d=new Date(t.ts); return d.getFullYear()===y && d.getMonth()===m;});
+  const monthTotal = monthItems.reduce((s,t)=>s+t.a,0);
+  document.getElementById('mTitle').textContent = y+'年'+(m+1)+'月 共花费';
+  document.getElementById('mTotal').textContent = fmt(monthTotal);
+  document.getElementById('dow').innerHTML = ['一','二','三','四','五','六','日'].map(d=>'<div class="dow">'+d+'</div>').join('');
+  const firstDow=(new Date(y,m,1).getDay()+6)%7; const days=new Date(y,m+1,0).getDate();
+  const byDay={}; monthItems.forEach(t=>{const k=dk(new Date(t.ts)); (byDay[k]=byDay[k]||[]).push(t);});
+  let html=''; for(let i=0;i<firstDow;i++) html+='<div class="cell empty"></div>';
+  for(let d=1; d<=days; d++){ const k=dk(new Date(y,m,d)); const has=byDay[k]&&byDay[k].length;
+    html+='<div class="cell '+(k===sel?'sel':'')+'" data-k="'+k+'"><div>'+d+'</div>'+(has?'<div class="m"></div>':'<div style="height:4px"></div>')+'</div>'; }
+  document.getElementById('grid').innerHTML = html;
+  document.querySelectorAll('.cell[data-k]').forEach(c=>c.addEventListener('click',()=>{sel=c.dataset.k; render();}));
+  const totals={}; monthItems.forEach(t=>totals[t.c]=(totals[t.c]||0)+t.a);
+  const tot = Object.values(totals).reduce((a,b)=>a+b,0)||1;
+  const rows = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('cats').innerHTML = rows.length ? rows.map(([id,amt])=>{const c=CAT[id]||{name:'其他',ic:'✨',color:'#999'}; const pct=Math.round(amt/tot*100);
+    return '<div class="row"><div class="dot" style="background:'+c.color+'"></div><div class="nm">'+c.ic+' '+c.name+'</div><div class="amt">RM '+fmt(amt)+' · '+pct+'%</div></div>';}).join('') : '<div class="empty-msg">这个月还没有记录</div>';
+  const dayTtl = document.getElementById('dayTtl'), dayList = document.getElementById('dayList');
+  if(!sel){ dayTtl.textContent='点日期查看当天开销'; dayList.innerHTML=''; return; }
+  const items = (byDay[sel]||[]).sort((a,b)=>b.ts-a.ts);
+  const dTotal = items.reduce((s,t)=>s+t.a,0);
+  dayTtl.textContent = sel+' 共花费 RM '+fmt(dTotal);
+  dayList.innerHTML = items.length ? items.map(t=>{const c=CAT[t.c]||{name:'其他',ic:'✨',color:'#999'};
+    return '<div class="tx"><div class="ic" style="background:'+c.color+'22">'+c.ic+'</div><div style="flex:1"><div class="ttl">'+(t.n||c.name)+'</div><div class="sub">'+c.name+' · '+new Date(t.ts).toTimeString().slice(0,5)+'</div></div><div class="amt">RM '+fmt(t.a)+'</div></div>';}).join('') : '<div class="empty-msg">这天没有记录</div>';
+}
+document.getElementById('pv').addEventListener('click',()=>{cur.setMonth(cur.getMonth()-1); render();});
+document.getElementById('nx').addEventListener('click',()=>{cur.setMonth(cur.getMonth()+1); render();});
+render();
+<\/script></body></html>`;
+}
+
+document.getElementById('shareBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('shareBtn');
+  const orig = btn.textContent;
+  openReportCard(); return;
+  if(false){
+    const url = location.href;
+    try{
+      if(navigator.share){ await navigator.share({ title:'TNG 开销记录', url }); return; }
+      await navigator.clipboard.writeText(url);
+      btn.textContent = '链接已复制 ✓';
+    }catch(e){
+      btn.textContent = '链接已复制 ✓';
+      try{ await navigator.clipboard.writeText(url); }catch(e2){ alert(url); }
+    }
+    alert('把这个链接发给老妈,她登录 Claude 账号打开就能看到实时记录(只读,不能修改)。');
+    setTimeout(()=> btn.textContent = orig, 1800);
+    return;
+  }
+  try{
+    if(!window.claude || !window.claude.use){ alert('当前环境不支持导出文件,请换到 Claude App 内打开这个网页再试。'); return; }
+    const downloads = await window.claude.use('downloads');
+    if(!downloads){ alert('当前环境不支持导出文件,请换到 Claude App 内打开这个网页再试。'); return; }
+    btn.textContent = '生成中...';
+    const html = buildReadOnlyHtml();
+    const res = await downloads.save({ filename:'TNG开销分享.html', data: html });
+    btn.textContent = res.status==='saved' ? '已保存 ✓' : '已分享 ✓';
+    setTimeout(()=> btn.textContent = orig, 1800);
+  }catch(e){
+    if(e && e.code==='declined'){ btn.textContent = orig; return; }
+    alert('导出失败,请稍后再试。');
+    btn.textContent = orig;
+  }
+});
+
+function buildTextReport(){
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  const items=tx.filter(t=>{const d=new Date(t.ts); return t.type==='out' && d.getFullYear()===y && d.getMonth()===m;}).sort((a,b)=>a.ts-b.ts);
+  const total=items.reduce((s,t)=>s+t.amt,0);
+  const days={}; items.forEach(t=>{const d=new Date(t.ts).getDate(); (days[d]=days[d]||[]).push(t);});
+  let s='💳 '+y+'年'+(m+1)+'月开销\n本月共花费 RM '+fmt(total)+'\n';
+  Object.keys(days).forEach(d=>{
+    const arr=days[d]; const sum=arr.reduce((a,t)=>a+t.amt,0);
+    s+='\n'+(m+1)+'月'+d+'日  RM '+fmt(sum)+'\n';
+    arr.forEach(t=>{ s+='  · '+(t.note||catInfo('out',t.cat).name)+'  RM '+fmt(t.amt)+'\n'; });
+  });
+  if(!items.length) s+='\n本月还没有记录';
+  return s;
+}
+
+let rpY=0, rpM=0;
+function openReportCard(){
+  const n=new Date(); rpY=n.getFullYear(); rpM=n.getMonth();
+  renderReportCard();
+  document.getElementById('reportCardBg').classList.add('open');
+}
+function renderReportCard(){
+  const items=tx.filter(t=>{const d=new Date(t.ts); return t.type==='out' && d.getFullYear()===rpY && d.getMonth()===rpM;});
+  const total=items.reduce((s,t)=>s+t.amt,0);
+  const byDay={}; items.forEach(t=>{const d=new Date(t.ts).getDate(); byDay[d]=(byDay[d]||0)+t.amt;});
+  const maxDay=Math.max(0,...Object.values(byDay));
+  const dim=new Date(rpY,rpM+1,0).getDate();
+  const first=(new Date(rpY,rpM,1).getDay()+6)%7;
+  const dayCount=Object.keys(byDay).length;
+  const avg=dayCount? total/dayCount : 0;
+  let cells=''; for(let i=0;i<first;i++) cells+='<div class="rc-cell empty"></div>';
+  for(let d=1; d<=dim; d++){
+    const a=byDay[d]; const cls=a? (a===maxDay && a>0 ? 'has hi':'has') : '';
+    const isFuture=new Date(rpY,rpM,d,0,0,0)>new Date(); const lab=a? (a>=1000 ? (a/1000).toFixed(1)+'k' : String(Math.round(a))) : (isFuture?'':'0');
+    cells+='<div class="rc-cell '+cls+'">'+d+(lab?'<b style="'+(a?'':'font-weight:500;color:#A0A9B8;')+'">'+lab+'</b>':'')+'</div>';
+  }
+  const ct={}; items.forEach(t=>{ct[t.cat]=(ct[t.cat]||0)+t.amt;});
+  const rows=Object.entries(ct).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const cats=rows.map(([id,amt])=>{const c=catInfo('out',id); const pct=Math.round(amt/(total||1)*100);
+    return '<div class="rc-cat"><div class="n">'+c.ic+' '+c.name+'</div><div class="bar"><i style="width:'+pct+'%;background:'+c.color+'"></i></div><div class="a">RM '+fmt(amt)+'</div></div>';}).join('');
+  document.getElementById('rcCard').innerHTML =
+    '<div class="rc-head"><div class="t">💳 TNG · 家庭开销月报</div><div class="m">'+rpY+'年'+(rpM+1)+'月</div><div class="big">RM '+fmt(total)+'</div><div class="sub">共 '+items.length+' 笔 · 有开销 '+dayCount+' 天 · 日均 RM '+fmt(avg)+'</div></div>'+
+    '<div class="rc-body"><div class="rc-dow">'+['一','二','三','四','五','六','日'].map(x=>'<div>'+x+'</div>').join('')+'</div><div class="rc-grid">'+cells+'</div>'+
+    (rows.length?'<div class="rc-cats">'+cats+'</div>':'<div class="rc-foot" style="margin-top:16px;">这个月还没有记录</div>')+
+    '<div class="rc-foot">日历格内数字为当天支出(RM) · 橙色为花费最多的一天</div></div>';
+}
+document.getElementById('rcPrev').addEventListener('click',()=>{ rpM--; if(rpM<0){rpM=11;rpY--;} renderReportCard(); });
+document.getElementById('rcNext').addEventListener('click',()=>{ rpM++; if(rpM>11){rpM=0;rpY++;} renderReportCard(); });
+document.getElementById('rcClose').addEventListener('click',()=>document.getElementById('reportCardBg').classList.remove('open'));
+document.getElementById('rcText').addEventListener('click',()=>{ document.getElementById('reportCardBg').classList.remove('open'); document.getElementById('reportText').value=buildTextReport(); document.getElementById('reportBg').classList.add('open'); });
+
+function showTextReport(){
+  document.getElementById('reportText').value=buildTextReport();
+  document.getElementById('reportBg').classList.add('open');
+}
+document.getElementById('reportClose').addEventListener('click',()=>document.getElementById('reportBg').classList.remove('open'));
+document.getElementById('reportCopy').addEventListener('click',async()=>{
+  const ta=document.getElementById('reportText'); const b=document.getElementById('reportCopy');
+  ta.select();
+  try{ await navigator.clipboard.writeText(ta.value); }catch(e){ try{ document.execCommand('copy'); }catch(e2){} }
+  b.textContent='已复制 ✓'; setTimeout(()=>b.textContent='复制',1500);
+});
+
+function applyRoleUI(){
+  document.body.classList.toggle('viewer-mode', !canWrite);
+  document.getElementById('roleTag').textContent = useDb ? (canWrite ? '✏️ 编辑模式 · 云端同步' : '👀 只读模式 · 实时同步') : '';
+  if(!canWrite){
+    document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('viewCal').classList.add('active');
+  }
+}
+
+(async function init(){
+  renderCatGrid();
+  try{
+    if(window.claude && window.claude.use){
+      const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      if(db){
+        dbCol = db.collection('tx'); useDb = true;
+        let w = user ? await user.can('data.write') : null;
+        if(w === null) w = user ? await user.isOwner() : true;
+        canWrite = !!w;
+        applyRoleUI();
+        dbCol.orderBy('ts','desc').limit(1000).onSnapshot(snap=>{
+          tx = snap.docs.filter(d=>d.exists).map(d=> Object.assign({id:d.id}, d.data()));
+          onDataChanged();
+        }, err=>{ console.error('db error', err); });
+        return;
+      }
+    }
+  }catch(e){ console.error(e); }
+  useDb = false; canWrite = true;
+  try{ tx = JSON.parse(localStorage.getItem(KEY) || '[]'); }catch(e){ tx = []; }
+  applyRoleUI();
+  onDataChanged();
+})();
+</script>
+</body>
+</html>
