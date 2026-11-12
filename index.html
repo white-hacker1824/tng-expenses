@@ -164,7 +164,7 @@ body.viewer-mode .wrap{padding-bottom:30px;}
 .rc-dow,.rc-grid{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; width:100%;}
 .rc-dow div{text-align:center; font-size:10px; color:#8A94A6; padding-bottom:3px;}
 .rc-cell{min-width:0; overflow:hidden; aspect-ratio:1/1.08; border-radius:9px; background:#F4F6F9; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; color:#5B6779;}
-.rc-cell.empty{visibility:hidden;}
+.rc-cell.blank{visibility:hidden;}
 .rc-cell.has{background:#FFE9E1; color:#1B2538;}
 .rc-cell.hi{background:#FF6A3D; color:#fff;}
 .rc-cell b{font:700 10px 'Manrope',sans-serif; margin-top:2px;}
@@ -179,6 +179,14 @@ body.viewer-mode .wrap{padding-bottom:30px;}
 .rc-actions button{flex:1; padding:12px; border-radius:12px; border:none; font:700 13px 'Manrope',sans-serif; cursor:pointer;}
 .rc-tip{text-align:center; color:#DCE4F2; font-size:12px; margin-top:10px;}
 ::-webkit-scrollbar{width:0;height:0;}
+
+/* ---- encrypted share link ---- */
+body.share-view > *:not(#reportCardBg):not(#unlockBg):not(script){display:none !important;}
+body.share-view .rc-nav, body.share-view .rc-actions{display:none !important;}
+.lock-card{background:#fff; color:#1B2538; border-radius:22px; padding:24px 20px; width:100%; max-width:340px; margin:auto; box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.lock-card h2{font:800 18px 'Manrope',sans-serif; margin:0 0 6px;}
+.lock-card p{font-size:12px; color:#5B6779; margin:0 0 14px; line-height:1.5;}
+.lock-err{color:#D13B3B; font-size:12px; min-height:16px; margin-top:8px;}
 </style>
 </head>
 <body>
@@ -249,7 +257,7 @@ body.viewer-mode .wrap{padding-bottom:30px;}
 <div class="rc-bg" id="reportCardBg"><div class="rc-wrap">
   <div class="rc-nav"><button id="rcPrev">‹</button><span>📸 截图后发给家人</span><button id="rcNext">›</button></div>
   <div class="rc-card" id="rcCard"></div>
-  <div class="rc-actions"><button style="background:rgba(255,255,255,.15);color:#fff;" id="rcClose">关闭</button><button style="background:#fff;color:#0B2244;" id="rcText">复制文字版</button></div>
+  <div class="rc-actions"><button style="background:rgba(255,255,255,.15);color:#fff;" id="rcClose">关闭</button><button style="background:#fff;color:#0B2244;" id="rcLink">复制链接</button></div>
 </div></div>
 
 <div class="sheet-bg" id="reportBg"><div class="sheet"><h2>发给老妈</h2><div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">点下面“复制”,再到 WhatsApp 粘贴发送</div><textarea id="reportText" class="text-input" style="height:240px;font-size:13px;" readonly></textarea><div class="sheet-actions" style="margin-top:12px;"><button class="btn btn-ghost" id="reportClose">关闭</button><button class="btn btn-primary" id="reportCopy">复制</button></div></div></div>
@@ -283,6 +291,21 @@ body.viewer-mode .wrap{padding-bottom:30px;}
     <button class="btn" id="deleteInSheet" style="display:none;width:100%;margin-top:10px;background:none;color:var(--red);border:1px solid var(--line);">删除这笔记录</button>
   </div>
 </div>
+
+<div class="sheet-bg" id="linkBg"><div class="sheet"><h2>复制加密链接</h2>
+  <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5;">设置一个查看密码。链接里只含 <b id="linkMonth"></b> 的数据,已加密,家人打开链接后输入密码才能看。<br>密码请另外告诉家人,不要和链接一起发;建议 8 位以上。</div>
+  <input class="text-input" id="linkPw" type="text" autocomplete="off" placeholder="查看密码(至少 6 位)">
+  <div class="lock-err" id="linkErr"></div>
+  <div class="sheet-actions" style="margin-top:8px;"><button class="btn btn-ghost" id="linkCancel">取消</button><button class="btn btn-primary" id="linkCopy">复制链接</button></div>
+</div></div>
+
+<div class="rc-bg" id="unlockBg"><div class="lock-card">
+  <h2>🔒 TNG · 家庭开销月报</h2>
+  <p>请输入查看密码</p>
+  <input class="text-input" id="unlockPw" type="password" autocomplete="off" placeholder="密码">
+  <div class="lock-err" id="unlockErr"></div>
+  <div class="sheet-actions" style="margin-top:8px;"><button class="btn btn-primary" id="unlockBtn">查看</button></div>
+</div></div>
 
 <script>
 const CATS_OUT = [
@@ -732,7 +755,7 @@ function renderReportCard(){
   const first=(new Date(rpY,rpM,1).getDay()+6)%7;
   const dayCount=Object.keys(byDay).length;
   const avg=dayCount? total/dayCount : 0;
-  let cells=''; for(let i=0;i<first;i++) cells+='<div class="rc-cell empty"></div>';
+  let cells=''; for(let i=0;i<first;i++) cells+='<div class="rc-cell blank"></div>';
   for(let d=1; d<=dim; d++){
     const a=byDay[d]; const cls=a? (a===maxDay && a>0 ? 'has hi':'has') : '';
     const isFuture=new Date(rpY,rpM,d,0,0,0)>new Date(); const lab=a? (a>=1000 ? (a/1000).toFixed(1)+'k' : String(Math.round(a))) : (isFuture?'':'0');
@@ -751,7 +774,84 @@ function renderReportCard(){
 document.getElementById('rcPrev').addEventListener('click',()=>{ rpM--; if(rpM<0){rpM=11;rpY--;} renderReportCard(); });
 document.getElementById('rcNext').addEventListener('click',()=>{ rpM++; if(rpM>11){rpM=0;rpY++;} renderReportCard(); });
 document.getElementById('rcClose').addEventListener('click',()=>document.getElementById('reportCardBg').classList.remove('open'));
-document.getElementById('rcText').addEventListener('click',()=>{ document.getElementById('reportCardBg').classList.remove('open'); document.getElementById('reportText').value=buildTextReport(); document.getElementById('reportBg').classList.add('open'); });
+/* ---- Encrypted share link (PBKDF2 + AES-GCM, no backend) ---- */
+const PW_KEY='tng-share-pw', PBKDF2_ITER=200000;
+function b64uEnc(buf){ const u=new Uint8Array(buf); let b=''; for(let i=0;i<u.length;i+=0x8000) b+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(b).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64uDec(str){ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const bin=atob(str); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u; }
+async function pipeBytes(bytes, stream){ const w=stream.writable.getWriter(); w.write(bytes); w.close(); return new Uint8Array(await new Response(stream.readable).arrayBuffer()); }
+async function deriveKey(pw, salt){
+  const km=await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:PBKDF2_ITER, hash:'SHA-256'}, km, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+// token = base64url( flag(1) | salt(16) | iv(12) | ciphertext ); flag 1 = gzip
+async function encryptPayload(obj, pw){
+  let data=new TextEncoder().encode(JSON.stringify(obj)), flag=0;
+  if(typeof CompressionStream!=='undefined'){ data=await pipeBytes(data,new CompressionStream('gzip')); flag=1; }
+  const salt=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, await deriveKey(pw,salt), data));
+  const out=new Uint8Array(1+16+12+ct.length); out[0]=flag; out.set(salt,1); out.set(iv,17); out.set(ct,29);
+  return b64uEnc(out);
+}
+async function decryptPayload(token, pw){
+  const u=b64uDec(token), flag=u[0], salt=u.slice(1,17), iv=u.slice(17,29), ct=u.slice(29);
+  let data=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM', iv}, await deriveKey(pw,salt), ct));
+  if(flag===1) data=await pipeBytes(data,new DecompressionStream('gzip'));
+  return JSON.parse(new TextDecoder().decode(data));
+}
+async function copyToClipboard(text){
+  try{ await navigator.clipboard.writeText(text); return true; }catch(e){}
+  try{ const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0;'; document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); ta.remove(); return ok; }catch(e){ return false; }
+}
+document.getElementById('rcLink').addEventListener('click',()=>{
+  if(!window.crypto || !crypto.subtle){ alert('当前环境不支持加密(需要 https 或 localhost 打开)。'); return; }
+  document.getElementById('reportCardBg').classList.remove('open');
+  document.getElementById('linkMonth').textContent=rpY+'年'+(rpM+1)+'月';
+  let saved=''; try{ saved=localStorage.getItem(PW_KEY)||''; }catch(e){}
+  document.getElementById('linkPw').value=saved;
+  document.getElementById('linkErr').textContent='';
+  document.getElementById('linkBg').classList.add('open');
+});
+document.getElementById('linkCancel').addEventListener('click',()=>document.getElementById('linkBg').classList.remove('open'));
+document.getElementById('linkCopy').addEventListener('click',async()=>{
+  const pw=document.getElementById('linkPw').value, err=document.getElementById('linkErr'), btn=document.getElementById('linkCopy');
+  if(pw.length<6){ err.textContent='密码至少 6 位'; return; }
+  btn.disabled=true; btn.textContent='加密中...';
+  try{
+    const d=tx.filter(t=>{const x=new Date(t.ts); return t.type==='out' && x.getFullYear()===rpY && x.getMonth()===rpM;}).map(t=>[t.amt,t.cat,t.note||'',t.ts]);
+    const token=await encryptPayload({v:1,y:rpY,m:rpM,g:Date.now(),d}, pw);
+    const url=location.href.split('#')[0]+'#s='+token;
+    try{ localStorage.setItem(PW_KEY, pw); }catch(e){}
+    if(await copyToClipboard(url)){ btn.textContent='链接已复制 ✓'; setTimeout(()=>{ btn.textContent='复制链接'; btn.disabled=false; document.getElementById('linkBg').classList.remove('open'); },1200); }
+    else{ btn.textContent='复制链接'; btn.disabled=false; prompt('请手动复制下面的链接:', url); }
+  }catch(e){ console.error(e); err.textContent='生成失败,请重试'; btn.textContent='复制链接'; btn.disabled=false; }
+});
+
+/* ---- Viewer: opened from a share link (#s=...) ---- */
+function initViewer(){
+  document.body.classList.add('share-view');
+  const token=location.hash.slice(3);
+  const bg=document.getElementById('unlockBg'), pwEl=document.getElementById('unlockPw'), errEl=document.getElementById('unlockErr'), btn=document.getElementById('unlockBtn');
+  bg.classList.add('open');
+  window.addEventListener('hashchange',()=>location.reload());
+  async function unlock(){
+    if(!pwEl.value) return;
+    btn.disabled=true; btn.textContent='解密中...'; errEl.textContent='';
+    try{
+      const p=await decryptPayload(token, pwEl.value);
+      tx=p.d.map(([amt,cat,note,ts])=>({type:'out',amt,cat,note,ts}));
+      rpY=p.y; rpM=p.m; renderReportCard();
+      const g=new Date(p.g).toLocaleString('zh-CN');
+      document.querySelector('#rcCard .rc-body').insertAdjacentHTML('beforeend','<div class="rc-foot">数据为 '+g+' 生成时的快照</div>');
+      bg.classList.remove('open');
+      document.getElementById('reportCardBg').classList.add('open');
+    }catch(e){
+      errEl.textContent='密码错误,或链接不完整'; btn.disabled=false; btn.textContent='查看';
+    }
+  }
+  btn.addEventListener('click',unlock);
+  pwEl.addEventListener('keydown',e=>{ if(e.key==='Enter') unlock(); });
+  pwEl.focus();
+}
 
 function showTextReport(){
   document.getElementById('reportText').value=buildTextReport();
@@ -776,6 +876,7 @@ function applyRoleUI(){
 }
 
 (async function init(){
+  if(location.hash.startsWith('#s=')){ initViewer(); return; }
   renderCatGrid();
   try{
     if(window.claude && window.claude.use){
